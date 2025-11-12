@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>🎁 Lista de Presentes</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>🎁 Lista de Presentes</h1>
+    <p>Escolha um presente de qualquer categoria. Quando escolhido, ele desaparecerá automaticamente da lista.</p>
+    <div id="categorias"></div>
+</div>
+<script>
+const socket = io();
+function render(presentes) {
+    const categoriasDiv = document.getElementById("categorias");
+    categoriasDiv.innerHTML = "";
+    for (const categoria in presentes) {
+        const bloco = document.createElement("div");
+        bloco.classList.add("categoria");
+        bloco.innerHTML = `<h2>${categoria}</h2>`;
+        const ul = document.createElement("ul");
+        presentes[categoria].forEach(p => {
+            const li = document.createElement("li");
+            li.textContent = p.nome;
+            if (!p.escolhido) {
+                const btn = document.createElement("button");
+                btn.textContent = "Escolher";
+                btn.onclick = () => socket.emit('escolher_presente', {categoria: categoria, nome: p.nome});
+                li.appendChild(btn);
+            } else {
+                li.classList.add("escolhido");
+            }
+            ul.appendChild(li);
+        });
+        bloco.appendChild(ul);
+        categoriasDiv.appendChild(bloco);
+    }
+}
+socket.on('atualizar_lista', data => render(data));
+socket.emit('atualizar_lista', {});
+</script>
+</body>
+</html>
